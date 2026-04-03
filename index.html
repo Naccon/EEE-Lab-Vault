@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EEE Lab Vault | BAUST Khulna</title>
+  <meta
+    name="description"
+    content="A cyber-tech academic lab report vault with draft management, editable academic profiles, exports, history, and local persistence."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body data-theme="dark">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="circuit-logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="brandGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00d4ff"></stop>
+                <stop offset="100%" stop-color="#00ff88"></stop>
+              </linearGradient>
+            </defs>
+            <rect x="7" y="7" width="50" height="50" rx="10" fill="none" stroke="url(#brandGlow)" stroke-width="2"></rect>
+            <path d="M20 32h10l6-10 8 20 6-10h4" fill="none" stroke="url(#brandGlow)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="20" cy="32" r="3" fill="#00d4ff"></circle>
+            <circle cx="30" cy="32" r="3" fill="#00ff88"></circle>
+            <circle cx="56" cy="32" r="3" fill="#f7b731"></circle>
+          </svg>
+        </div>
+        <div class="site-brand">
+          <span class="site-name">EEE Lab Vault</span>
+          <span class="site-sub">BAUST Khulna // cyber academic console</span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <label class="search-shell" for="globalSearch">
+          <span class="search-label">// Search reports</span>
+          <input
+            id="globalSearch"
+            class="search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="Search by title, subject, teacher, code, result..."
+          >
+        </label>
+      </div>
+
+      <div class="topbar-right">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span id="autosaveTopStatus">Vault ready</span>
+        </div>
+        <button id="openDashboardBtn" class="btn btn-ghost hidden" type="button">User Dashboard</button>
+        <button id="themeToggle" class="btn btn-ghost" type="button">Light Mode</button>
+        <button id="openAuthBtn" class="btn btn-ghost" type="button">Switch User</button>
+        <button id="openEditorBtn" class="btn btn-primary hidden" type="button" hidden aria-hidden="true">+ New Report</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-badge">EEE // REPORT MANAGEMENT SYSTEM</div>
+      <h1>
+        Build, draft, revise, publish, and export
+        <span>production-ready lab reports</span>
+      </h1>
+      <p class="hero-copy">
+        A local-first academic workspace for structured engineering reports with autosave,
+        editable academic fields, smart validation, version history, and cyber-tech polish.
+      </p>
+      <div class="hero-meta">
+        <span>Draft autosave</span>
+        <span>Editable course metadata</span>
+        <span>PDF / DOCX export</span>
+        <span>Local persistence</span>
+      </div>
+      <div class="hero-metrics">
+        <article class="metric-card">
+          <span class="metric-value" id="metricTotalReports">0</span>
+          <span class="metric-label">Reports in Vault</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-value" id="metricPublishedReports">0</span>
+          <span class="metric-label">Published</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-value" id="metricDraftReports">0</span>
+          <span class="metric-label">Drafts</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-value" id="metricAcademicProfiles">0</span>
+          <span class="metric-label">Saved Profiles</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-value" id="metricTodayViewers">0</span>
+          <span class="metric-label">Watching Today</span>
+        </article>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="sidebar-section glass-card">
+          <div class="panel-title">User Console</div>
+          <div id="profileSummary" class="profile-summary"></div>
+        </section>
+
+        <section class="sidebar-section glass-card">
+          <div class="panel-title">Security Layer</div>
+          <div id="securitySummary" class="memory-list"></div>
+        </section>
+
+        <section class="sidebar-section glass-card">
+          <div class="panel-title">Academic Filters</div>
+          <div class="sidebar-filter-stack">
+            <label class="field field-inline" for="levelFilter">
+              <span class="field-label">Year / Level</span>
+              <select id="levelFilter" class="field-input">
+                <option value="all">All Levels</option>
+              </select>
+            </label>
+
+            <label class="field field-inline" for="termFilter">
+              <span class="field-label">Semester / Term</span>
+              <select id="termFilter" class="field-input">
+                <option value="all">All Terms</option>
+              </select>
+            </label>
+
+            <label class="field field-inline" for="teacherCategoryFilter">
+              <span class="field-label">Teacher Category</span>
+              <select id="teacherCategoryFilter" class="field-input">
+                <option value="all">All Categories</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="sidebar-section glass-card">
+          <div class="panel-title">Category Matrix</div>
+          <div id="categoryList" class="category-list"></div>
+        </section>
+
+        <section class="sidebar-section glass-card">
+          <div class="panel-title">Academic Memory</div>
+          <div id="academicMemoryList" class="memory-list"></div>
+        </section>
+
+        <section class="sidebar-section glass-card">
+          <div class="panel-title">Vault Stats</div>
+          <div id="statsGrid" class="stat-grid"></div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="control-deck glass-card">
+          <div class="control-row">
+            <label class="field field-inline" for="statusFilter">
+              <span class="field-label">Status</span>
+              <select id="statusFilter" class="field-input">
+                <option value="all">All Statuses</option>
+                <option value="published">Published</option>
+                <option value="draft">Drafts</option>
+              </select>
+            </label>
+
+            <label class="field field-inline" for="subjectFilter">
+              <span class="field-label">Subject</span>
+              <select id="subjectFilter" class="field-input">
+                <option value="all">All Subjects</option>
+              </select>
+            </label>
+
+            <label class="field field-inline" for="sortFilter">
+              <span class="field-label">Sort</span>
+              <select id="sortFilter" class="field-input">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="title">Title A-Z</option>
+                <option value="subject">Subject A-Z</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="quick-filter-row">
+            <div id="quickFilterChips" class="quick-filter-chips" role="tablist" aria-label="Quick report filters"></div>
+            <button id="resumeDraftBtn" class="btn btn-ghost hidden" type="button">Resume Auto-Saved Draft</button>
+          </div>
+        </section>
+
+        <section id="featuredMount" class="featured-mount"></section>
+
+        <section class="reports-section">
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">REPORT INDEX</p>
+              <h2 class="section-title">Managed Lab Reports</h2>
+            </div>
+            <div class="section-actions">
+              <span id="resultsSummary" class="results-summary">0 reports shown</span>
+            </div>
+          </div>
+
+          <div id="reportsGrid" class="reports-grid" aria-live="polite"></div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-icon">0101</div>
+            <h3>No reports matched the current filters</h3>
+            <p id="emptyStateCopy">Try another search term or switch category.</p>
+            <button id="emptyCreateBtn" class="btn btn-primary hidden" type="button" hidden aria-hidden="true">Create Report</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <span>EEE LAB VAULT // BAUST KHULNA</span>
+      <span>Editable academic profile memory + structured report exports</span>
+      <span>Academic use only // Local-first storage</span>
+    </footer>
+  </div>
+
+  <section id="editorModal" class="modal-shell" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="editor"></div>
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">LAB REPORT EDITOR</p>
+          <h2 id="editorTitle" class="modal-title">Create New Report</h2>
+        </div>
+        <div class="modal-header-actions">
+          <div id="autosaveStatus" class="autosave-status">Autosave idle</div>
+          <button class="icon-btn" type="button" data-close-modal="editor" aria-label="Close editor">X</button>
+        </div>
+      </div>
+
+      <form id="reportForm" class="modal-body report-form" novalidate>
+        <input id="reportId" name="reportId" type="hidden">
+        <input id="reportVersionSourceId" name="reportVersionSourceId" type="hidden">
+
+        <div id="formAlert" class="form-alert hidden" role="alert"></div>
+        <div id="autosaveRestoreBanner" class="restore-banner hidden"></div>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">IDENTITY BLOCK</p>
+              <h3>Report Overview</h3>
+            </div>
+            <div class="form-inline-actions">
+              <label class="switch-row" for="reportStatus">
+                <span>Status</span>
+                <select id="reportStatus" name="status" class="field-input field-input-compact">
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field field-span-2" for="reportTitle">
+              <span class="field-label">Report Title *</span>
+              <input id="reportTitle" name="title" class="field-input" type="text" placeholder="Verification of Thevenin and Norton's Theorem">
+            </label>
+
+            <label class="field" for="reportCategory">
+              <span class="field-label">Category *</span>
+              <select id="reportCategory" name="categoryId" class="field-input"></select>
+            </label>
+
+            <label class="field" for="experimentNo">
+              <span class="field-label">Experiment No *</span>
+              <input id="experimentNo" name="experimentNo" class="field-input" type="text" placeholder="EXP-04">
+            </label>
+
+            <label class="field" for="experimentDate">
+              <span class="field-label">Date *</span>
+              <input id="experimentDate" name="experimentDate" class="field-input" type="date">
+            </label>
+
+            <label class="field" for="summary">
+              <span class="field-label">Executive Summary *</span>
+              <textarea id="summary" name="summary" class="field-input field-textarea field-textarea-sm" placeholder="Short summary used in cards, exports, and quick previews."></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">STUDENT INFO</p>
+              <h3>Academic Identity</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field" for="studentName">
+              <span class="field-label">Student Name *</span>
+              <input id="studentName" name="studentName" class="field-input" type="text" placeholder="Naccon">
+            </label>
+
+            <label class="field" for="studentId">
+              <span class="field-label">Student ID *</span>
+              <input id="studentId" name="studentId" class="field-input" type="text" placeholder="2024-EEE-001">
+            </label>
+
+            <label class="field" for="studentLevel">
+              <span class="field-label">Level *</span>
+              <select id="studentLevel" name="studentLevel" class="field-input">
+                <option value="">Select Level</option>
+              </select>
+            </label>
+
+            <label class="field" for="studentTerm">
+              <span class="field-label">Term *</span>
+              <select id="studentTerm" name="studentTerm" class="field-input">
+                <option value="">Select Term</option>
+              </select>
+            </label>
+
+            <label class="field" for="studentSection">
+              <span class="field-label">Section *</span>
+              <input id="studentSection" name="studentSection" class="field-input" type="text" placeholder="Section A">
+            </label>
+
+            <label class="field" for="studentDepartment">
+              <span class="field-label">Department *</span>
+              <input id="studentDepartment" name="studentDepartment" class="field-input" type="text" placeholder="Department of EEE">
+            </label>
+
+            <label class="field" for="institution">
+              <span class="field-label">Institution *</span>
+              <input id="institution" name="institution" class="field-input" type="text" placeholder="Bangladesh Army University of Science and Technology, Khulna">
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">EDITABLE ACADEMIC FIELDS</p>
+              <h3>Course + Instructor Metadata</h3>
+            </div>
+            <div class="form-inline-actions">
+              <label class="check-row" for="rememberAcademic">
+                <input id="rememberAcademic" name="rememberAcademic" type="checkbox" checked>
+                <span>Remember and suggest this profile</span>
+              </label>
+              <label class="check-row" for="lockAcademicFields">
+                <input id="lockAcademicFields" name="lockAcademicFields" type="checkbox">
+                <span>Lock for this report</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="profileSuggestionBar" class="profile-suggestion hidden"></div>
+
+          <div class="form-grid">
+            <label class="field" for="subjectName">
+              <span class="field-label">Subject Name *</span>
+              <input id="subjectName" name="subjectName" class="field-input academic-field" list="subjectNameSuggestions" type="text" placeholder="Circuit Analysis">
+            </label>
+
+            <label class="field" for="subjectCode">
+              <span class="field-label">Subject Code *</span>
+              <input id="subjectCode" name="subjectCode" class="field-input academic-field" list="subjectCodeSuggestions" type="text" placeholder="EEE 2103">
+            </label>
+
+            <label class="field" for="teacherName">
+              <span class="field-label">Teacher Name *</span>
+              <input id="teacherName" name="teacherName" class="field-input academic-field" list="teacherNameSuggestions" type="text" placeholder="Md. Saiful Islam">
+            </label>
+
+            <label class="field" for="teacherDesignation">
+              <span class="field-label">Teacher Designation *</span>
+              <input id="teacherDesignation" name="teacherDesignation" class="field-input academic-field" list="teacherDesignationSuggestions" type="text" placeholder="Associate Professor, Department of EEE">
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">REPORT CONTENT</p>
+              <h3>Structured Academic Sections</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field field-span-2" for="objective">
+              <span class="field-label">Objective *</span>
+              <textarea id="objective" name="objective" class="field-input field-textarea" placeholder="State the objective of this experiment."></textarea>
+            </label>
+
+            <label class="field field-span-2" for="theory">
+              <span class="field-label">Theory *</span>
+              <textarea id="theory" name="theory" class="field-input field-textarea" placeholder="Relevant theory, principles, equations, and assumptions."></textarea>
+            </label>
+
+            <label class="field field-span-2" for="apparatus">
+              <span class="field-label">Apparatus / Materials</span>
+              <textarea id="apparatus" name="apparatus" class="field-input field-textarea field-textarea-sm" placeholder="Resistors, multimeter, breadboard, oscilloscope, power supply, etc."></textarea>
+            </label>
+
+            <label class="field field-span-2" for="procedure">
+              <span class="field-label">Procedure</span>
+              <textarea id="procedure" name="procedure" class="field-input field-textarea field-textarea-sm" placeholder="Brief step-by-step procedure followed during the experiment."></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">CIRCUIT DIAGRAM</p>
+              <h3>Upload Support + Preview</h3>
+            </div>
+          </div>
+
+          <div class="diagram-uploader">
+            <div class="upload-panel">
+              <label class="btn btn-secondary upload-btn" for="diagramUpload">Upload Diagram</label>
+              <input id="diagramUpload" name="diagramUpload" class="sr-only" type="file" accept="image/*">
+              <button id="clearDiagramBtn" class="btn btn-ghost" type="button">Remove</button>
+              <label class="field field-inline" for="diagramCaption">
+                <span class="field-label">Caption</span>
+                <input id="diagramCaption" name="diagramCaption" class="field-input" type="text" placeholder="FIG. 01 - Circuit diagram for experiment">
+              </label>
+            </div>
+            <div id="diagramPreview" class="diagram-preview empty">
+              <div class="diagram-preview-placeholder">No diagram uploaded yet</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">DATA TABLE</p>
+              <h3>Observed and Calculated Values</h3>
+            </div>
+            <div class="form-inline-actions">
+              <button id="addTableRowBtn" class="btn btn-secondary" type="button">+ Add Row</button>
+            </div>
+          </div>
+
+          <div class="table-builder">
+            <div class="table-header-grid">
+              <label class="field" for="tableHeader0">
+                <span class="field-label">Column 1 *</span>
+                <input id="tableHeader0" class="field-input table-header-input" data-header-index="0" type="text" value="Parameter">
+              </label>
+              <label class="field" for="tableHeader1">
+                <span class="field-label">Column 2 *</span>
+                <input id="tableHeader1" class="field-input table-header-input" data-header-index="1" type="text" value="Measured">
+              </label>
+              <label class="field" for="tableHeader2">
+                <span class="field-label">Column 3 *</span>
+                <input id="tableHeader2" class="field-input table-header-input" data-header-index="2" type="text" value="Calculated">
+              </label>
+              <label class="field" for="tableHeader3">
+                <span class="field-label">Column 4 *</span>
+                <input id="tableHeader3" class="field-input table-header-input" data-header-index="3" type="text" value="Remarks">
+              </label>
+            </div>
+
+            <div id="tableRows" class="table-rows"></div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">FINDINGS</p>
+              <h3>Result, Conclusion, References</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field field-span-2" for="result">
+              <span class="field-label">Result *</span>
+              <textarea id="result" name="result" class="field-input field-textarea" placeholder="State the final results, measured values, errors, and observations."></textarea>
+            </label>
+
+            <label class="field field-span-2" for="conclusion">
+              <span class="field-label">Conclusion *</span>
+              <textarea id="conclusion" name="conclusion" class="field-input field-textarea" placeholder="Write the conclusion and academic interpretation."></textarea>
+            </label>
+
+            <label class="field field-span-2" for="references">
+              <span class="field-label">References / Notes</span>
+              <textarea id="references" name="references" class="field-input field-textarea field-textarea-sm" placeholder="Books, manuals, websites, additional notes."></textarea>
+            </label>
+          </div>
+        </section>
+
+        <div class="modal-footer">
+          <div class="footer-left">
+            <button id="saveWorkspaceBtn" class="btn btn-ghost" type="button">Save Workspace</button>
+            <button id="resetFormBtn" class="btn btn-ghost" type="button">Reset Form</button>
+          </div>
+          <div class="footer-right">
+            <button class="btn btn-secondary" type="button" data-close-modal="editor">Cancel</button>
+            <button id="saveReportBtn" class="btn btn-primary" type="submit">Save Report</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section id="viewerModal" class="modal-shell" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="viewer"></div>
+    <div class="modal modal-viewer" role="dialog" aria-modal="true" aria-labelledby="viewerModalTitle">
+      <div class="modal-header viewer-header">
+        <div>
+          <p class="modal-kicker">REPORT VIEWER</p>
+          <h2 id="viewerModalTitle" class="modal-title">Report Viewer</h2>
+        </div>
+        <div class="viewer-toolbar">
+          <button id="viewerEditBtn" class="btn btn-ghost" type="button">Edit</button>
+          <button id="viewerToggleStatusBtn" class="btn btn-ghost" type="button">Toggle Status</button>
+          <button id="viewerDuplicateBtn" class="btn btn-ghost" type="button">Duplicate</button>
+          <button id="viewerHistoryBtn" class="btn btn-ghost" type="button">History</button>
+          <button id="viewerPdfBtn" class="btn btn-secondary" type="button">Download PDF</button>
+          <button id="viewerDocxBtn" class="btn btn-secondary" type="button">Download DOCX</button>
+          <button id="viewerDeleteBtn" class="btn btn-danger" type="button">Delete</button>
+          <button class="icon-btn" type="button" data-close-modal="viewer" aria-label="Close viewer">X</button>
+        </div>
+      </div>
+      <div id="viewerContent" class="modal-body viewer-content"></div>
+    </div>
+  </section>
+
+  <section id="historyModal" class="modal-shell" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="history"></div>
+    <div class="modal modal-medium" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">VERSION HISTORY</p>
+          <h2 id="historyTitle" class="modal-title">Saved Revisions</h2>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="history" aria-label="Close history">X</button>
+      </div>
+      <div id="historyList" class="modal-body history-list"></div>
+    </div>
+  </section>
+
+  <section id="dashboardModal" class="modal-shell" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="dashboard"></div>
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="dashboardTitle">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">ADMIN USER DASHBOARD</p>
+          <h2 id="dashboardTitle" class="modal-title">User Management Console</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button id="dashboardSeedBtn" class="btn btn-secondary" type="button">Fill To 100 Users</button>
+          <button class="icon-btn" type="button" data-close-modal="dashboard" aria-label="Close dashboard">X</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <section class="form-section">
+          <div class="form-grid">
+            <label class="field field-span-2" for="dashboardSearch">
+              <span class="field-label">Search Users</span>
+              <input id="dashboardSearch" class="field-input" type="search" placeholder="Search by name, username, email, level, term, section">
+            </label>
+          </div>
+          <div id="dashboardStats" class="stat-grid"></div>
+        </section>
+        <section class="form-section">
+          <div id="dashboardUserList" class="memory-list"></div>
+        </section>
+        <section class="form-section">
+          <div class="form-section-header">
+            <div>
+              <p class="section-kicker">VISITOR LOG</p>
+              <h3>Guest + User Activity</h3>
+            </div>
+          </div>
+          <div id="dashboardLogs" class="memory-list"></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section id="confirmModal" class="modal-shell" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="confirm"></div>
+    <div class="modal modal-small" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">ACTION CONFIRMATION</p>
+          <h2 id="confirmTitle" class="modal-title">Confirm Action</h2>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="confirm" aria-label="Close confirmation">X</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage" class="confirm-message">Are you sure you want to continue?</p>
+      </div>
+      <div class="modal-footer">
+        <div class="footer-right">
+          <button id="confirmCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+          <button id="confirmOkBtn" class="btn btn-danger" type="button">Continue</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="authGate" class="auth-gate hidden" aria-hidden="true">
+    <div class="auth-card">
+      <div class="auth-header">
+        <p class="modal-kicker">LOCAL ACCESS CONTROL</p>
+        <h2>Sign into the vault</h2>
+        <p>Published reports stay visible without login. Sign in only for editing, autosave, drafts, or super-admin management.</p>
+      </div>
+
+      <form id="authForm" class="auth-form">
+        <label class="field" for="authUsername">
+          <span class="field-label">Email Address</span>
+          <input id="authUsername" name="username" class="field-input" type="email" autocomplete="username" placeholder="student@vault.local">
+        </label>
+
+        <label class="field" for="authPassword">
+          <span class="field-label">Student ID / Passcode</span>
+          <input id="authPassword" name="password" class="field-input" type="password" autocomplete="current-password" placeholder="Enter the student ID or super-admin passcode">
+        </label>
+
+        <div id="authAlert" class="form-alert hidden" role="alert"></div>
+
+        <div class="auth-actions">
+          <button class="btn btn-primary" type="submit">Sign In</button>
+          <button id="cancelAuthBtn" class="btn btn-ghost" type="button">Cancel</button>
+        </div>
+
+        <div class="auth-hint">
+          Use your assigned email address and student ID or administrative passcode.
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div id="loadingOverlay" class="loading-overlay hidden" aria-hidden="true">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <p id="loadingMessage">Processing request...</p>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+  <datalist id="subjectNameSuggestions"></datalist>
+  <datalist id="subjectCodeSuggestions"></datalist>
+  <datalist id="teacherNameSuggestions"></datalist>
+  <datalist id="teacherDesignationSuggestions"></datalist>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.umd.cjs"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+  <script defer src="./js/config.js"></script>
+  <script defer src="./js/utils.js"></script>
+  <script defer src="./js/sample-data.js"></script>
+  <script defer src="./js/storage.js"></script>
+  <script defer src="./js/validation.js"></script>
+  <script defer src="./backend/mock-backend.js"></script>
+  <script defer src="./js/templates.js"></script>
+  <script defer src="./js/exporters.js"></script>
+  <script defer src="./js/auth.js"></script>
+  <script defer src="./js/app.js"></script>
+  <script defer src="./script.js"></script>
+</body>
+</html>
