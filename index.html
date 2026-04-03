@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EEE Lab Vault — BAUST Khulna</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== TOAST NOTIFICATION ===================== -->
+<div id="toast" class="toast"></div>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar">
+  <div class="topbar-left">
+    <svg class="circuit-logo" viewBox="0 0 38 38" fill="none">
+      <rect x="1" y="1" width="36" height="36" rx="2" stroke="#1a3a5c" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="3" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+      <circle cx="28" cy="28" r="3" fill="none" stroke="#00ff88" stroke-width="1.5"/>
+      <circle cx="28" cy="10" r="2" fill="#00d4ff" opacity="0.6"/>
+      <circle cx="10" cy="28" r="2" fill="#f7b731" opacity="0.7"/>
+      <line x1="10" y1="13" x2="10" y2="19" stroke="#00d4ff" stroke-width="1"/>
+      <line x1="10" y1="19" x2="28" y2="19" stroke="#00d4ff" stroke-width="1"/>
+      <line x1="28" y1="19" x2="28" y2="25" stroke="#00d4ff" stroke-width="1"/>
+      <line x1="13" y1="10" x2="26" y2="10" stroke="#00d4ff" stroke-width="1" stroke-dasharray="2 2"/>
+      <line x1="10" y1="25" x2="10" y2="28" stroke="#f7b731" stroke-width="1"/>
+      <rect x="17" y="16" width="4" height="6" fill="none" stroke="#00ff88" stroke-width="1"/>
+    </svg>
+    <div class="site-brand">
+      <span class="site-name">EEE Lab Vault</span>
+      <span class="site-sub">BAUST // KHULNA // 2ND YEAR</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-indicator">
+      <div class="status-dot"></div>
+      <span id="reportCountBadge">0 REPORTS</span>
+    </div>
+    <button class="btn-icon" onclick="openSettingsModal()" title="Academic Settings">⚙</button>
+    <button class="btn-publish" onclick="openPublishModal()">+ New Report</button>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <svg class="hero-circuit" viewBox="0 0 1200 200" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#00d4ff" stroke-width="1" fill="none">
+      <path d="M0 100 H200 V50 H400 V150 H600 V80 H800 V120 H1000 V60 H1200"/>
+      <path d="M100 100 V200"/><path d="M300 50 V0"/><path d="M500 80 V0"/>
+      <path d="M700 120 V200"/><path d="M900 60 V0"/>
+      <circle cx="200" cy="50" r="4"/><circle cx="600" cy="80" r="4"/>
+      <circle cx="1000" cy="60" r="4"/>
+    </g>
+  </svg>
+  <div class="hero-badge">Bangladesh Army University of Science and Technology</div>
+  <h1>Electrical &amp; Electronics<br><span>Engineering Lab Reports</span></h1>
+  <div class="hero-meta">
+    <span id="heroStudentName">2nd Year, 1st Semester</span>
+    <span>Dept. of EEE</span>
+    <span>Khulna, Bangladesh</span>
+  </div>
+</section>
+
+<!-- ===================== LAYOUT ===================== -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Search -->
+    <div class="sidebar-section">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Search reports..." oninput="handleSearch(this.value)">
+    </div>
+
+    <!-- Categories -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Categories</div>
+      <div id="categoryList">
+        <div class="cat-item active" onclick="filterCat('all', this)" data-cat="all">
+          <span class="cat-icon">⚡</span> All Reports
+          <span class="cat-count" id="count-all">0</span>
+        </div>
+        <div class="cat-item" onclick="filterCat('Circuit Analysis', this)" data-cat="Circuit Analysis">
+          <span class="cat-icon">🔌</span> Circuit Analysis
+          <span class="cat-count" id="count-Circuit Analysis">0</span>
+        </div>
+        <div class="cat-item" onclick="filterCat('Electronics I', this)" data-cat="Electronics I">
+          <span class="cat-icon">📡</span> Electronics I
+          <span class="cat-count" id="count-Electronics I">0</span>
+        </div>
+        <div class="cat-item" onclick="filterCat('Power Systems', this)" data-cat="Power Systems">
+          <span class="cat-icon">⚡</span> Power Systems
+          <span class="cat-count" id="count-Power Systems">0</span>
+        </div>
+        <div class="cat-item" onclick="filterCat('Signals & Systems', this)" data-cat="Signals & Systems">
+          <span class="cat-icon">〜</span> Signals &amp; Systems
+          <span class="cat-count" id="count-Signals & Systems">0</span>
+        </div>
+        <div class="cat-item" onclick="filterCat('Programming Lab', this)" data-cat="Programming Lab">
+          <span class="cat-icon">💻</span> Programming Lab
+          <span class="cat-count" id="count-Programming Lab">0</span>
+        </div>
+        <div class="cat-item" onclick="filterCat('Engineering Math', this)" data-cat="Engineering Math">
+          <span class="cat-icon">∑</span> Engineering Math
+          <span class="cat-count" id="count-Engineering Math">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Statistics</div>
+      <div class="stat-grid">
+        <div class="stat-box"><span class="stat-val" id="statTotal">0</span><span class="stat-lbl">Reports</span></div>
+        <div class="stat-box"><span class="stat-val" id="statSubjects">0</span><span class="stat-lbl">Subjects</span></div>
+        <div class="stat-box"><span class="stat-val" id="statDone">0</span><span class="stat-lbl">Done</span></div>
+        <div class="stat-box"><span class="stat-val" id="statDraft">0</span><span class="stat-lbl">Draft</span></div>
+      </div>
+    </div>
+
+    <!-- Local Files -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Local Reports
+        <button class="btn-tiny" onclick="openLocalFilesPanel()" title="Browse local folder">📁</button>
+      </div>
+      <div id="localFilesList" class="local-files-list">
+        <div class="local-empty">
+          <span>Click 📁 to browse local folder</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- Filter row -->
+    <div class="section-header">
+      <div class="section-title" id="currentCatTitle">All Reports</div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="sortReports('date', this)">Latest</button>
+        <button class="filter-btn" onclick="sortReports('subject', this)">Subject</button>
+        <button class="filter-btn" onclick="sortReports('done', this)">Done</button>
+        <button class="filter-btn" onclick="sortReports('draft', this)">Draft</button>
+      </div>
+    </div>
+
+    <!-- Reports Grid -->
+    <div class="reports-grid" id="reportGrid">
+      <!-- Dynamically rendered -->
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">No reports yet</div>
+      <div class="empty-sub">Click "+ New Report" to publish your first lab report.</div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <span>EEE LAB VAULT // BAUST KHULNA</span>
+  <span id="footerName">EEE Student</span>
+  <span>© <span id="footerYear">2025</span> — Academic Use Only</span>
+</footer>
+
+
+<!-- ================================================================
+     MODAL: PUBLISH / EDIT REPORT
+================================================================ -->
+<div class="modal-overlay" id="publishModal" onclick="closeOnOverlay(event,'publishModal')">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">// New Lab Report</span>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button class="btn-draft-save" id="draftBtn" onclick="saveDraft()">💾 Save Draft</button>
+        <button class="modal-close" onclick="closePublishModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+
+      <!-- Hidden ID for edit mode -->
+      <input type="hidden" id="editReportId">
+
+      <!-- COURSE INFO -->
+      <div class="form-section-title">// Course Information</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject / Category *</label>
+          <select class="form-select" id="f_category" required onchange="updateSubjectCode()">
+            <option value="">Select Subject</option>
+            <option value="Circuit Analysis">Circuit Analysis</option>
+            <option value="Electronics I">Electronics I</option>
+            <option value="Power Systems">Power Systems</option>
+            <option value="Signals & Systems">Signals &amp; Systems</option>
+            <option value="Programming Lab">Programming Lab</option>
+            <option value="Engineering Math">Engineering Math</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject Code *</label>
+          <input class="form-input" type="text" id="f_subjectCode" placeholder="e.g. EEE-212" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Report Title *</label>
+        <input class="form-input" type="text" id="f_title" placeholder="e.g. Verification of Thevenin's Theorem" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Experiment No. *</label>
+          <input class="form-input" type="text" id="f_expNo" placeholder="e.g. EXP-05" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Experiment *</label>
+          <input class="form-input" type="date" id="f_date" required>
+        </div>
+      </div>
+
+      <!-- ACADEMIC INFO -->
+      <div class="form-section-title">// Academic Info</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teacher Name *</label>
+          <input class="form-input" type="text" id="f_teacherName" placeholder="e.g. Md. Ayaj Uddin Khan" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher Designation</label>
+          <input class="form-input" type="text" id="f_teacherDes" placeholder="e.g. Assistant Professor">
+        </div>
+      </div>
+
+      <!-- CONTENT SECTIONS -->
+      <div class="form-section-title">// Report Content</div>
+
+      <div class="form-group">
+        <label class="form-label">Objective *</label>
+        <textarea class="form-textarea" id="f_objective" placeholder="State the objective of this experiment..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Theory &amp; Background</label>
+        <textarea class="form-textarea" id="f_theory" placeholder="Key equations, concepts, relevant theory..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Apparatus / Equipment</label>
+        <textarea class="form-textarea" style="min-height:70px;" id="f_apparatus" placeholder="List of instruments and components used..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Experimental Data / Observations</label>
+        <textarea class="form-textarea" id="f_data" placeholder="Tables, measurements, observations..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Results &amp; Discussion</label>
+        <textarea class="form-textarea" id="f_results" placeholder="Analysis of data, calculated values, comparison with theory..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Conclusion</label>
+        <textarea class="form-textarea" id="f_conclusion" placeholder="Summary of findings and what was learned..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f_status">
+            <option value="DONE">DONE</option>
+            <option value="DRAFT">DRAFT</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-submit" onclick="submitReport()">⚡ Publish Report</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     MODAL: ACADEMIC SETTINGS
+================================================================ -->
+<div class="modal-overlay" id="settingsModal" onclick="closeOnOverlay(event,'settingsModal')">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title">// Academic Settings</span>
+      <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title">// Student Info</div>
+      <div class="form-group">
+        <label class="form-label">Student Name *</label>
+        <input class="form-input" type="text" id="s_studentName" placeholder="e.g. Md. Naim Ibne Nasir">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Student ID</label>
+          <input class="form-input" type="text" id="s_studentId" placeholder="e.g. 1072510005131008">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Batch</label>
+          <input class="form-input" type="text" id="s_batch" placeholder="e.g. 2nd">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Year &amp; Semester</label>
+        <input class="form-input" type="text" id="s_yearSem" placeholder="e.g. 2nd Year 1st Semester">
+      </div>
+
+      <div class="form-section-title">// Default Teacher Info</div>
+      <div class="form-group">
+        <label class="form-label">Default Teacher Name</label>
+        <input class="form-input" type="text" id="s_teacherName" placeholder="e.g. Md. Ayaj Uddin Khan">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Designation</label>
+          <input class="form-input" type="text" id="s_teacherDes" placeholder="e.g. Assistant Professor">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <input class="form-input" type="text" id="s_dept" placeholder="e.g. EEE">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-submit" onclick="saveSettings()">💾 Save Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     MODAL: LOCAL FILES BROWSER
+================================================================ -->
+<div class="modal-overlay" id="localFilesModal" onclick="closeOnOverlay(event,'localFilesModal')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title">// Local Report Files</span>
+      <button class="modal-close" onclick="document.getElementById('localFilesModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Select Local Folder</label>
+        <div style="display:flex;gap:0.5rem;">
+          <input class="form-input" type="text" id="localFolderPath" placeholder="Click Browse or use File System API..." readonly>
+          <button class="btn-browse" onclick="browseLocalFolder()">📁 Browse</button>
+        </div>
+        <div class="form-hint">Uses the File System Access API (Chrome/Edge). Select a folder to list your local report files.</div>
+      </div>
+      <div id="localFilesResult" class="local-files-result"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     MODAL: DELETE CONFIRMATION
+================================================================ -->
+<div class="modal-overlay" id="deleteModal" onclick="closeOnOverlay(event,'deleteModal')">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--danger)">// Delete Report</span>
+      <button class="modal-close" onclick="document.getElementById('deleteModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text);font-size:0.9rem;margin-bottom:1.5rem;line-height:1.6;">
+        Are you sure you want to delete <strong id="deleteReportTitle" style="color:var(--accent)"></strong>?
+        <br><span style="color:var(--muted);font-size:0.8rem;">This action cannot be undone.</span>
+      </p>
+      <div style="display:flex;gap:0.8rem;">
+        <button class="btn-submit" style="background:var(--danger);flex:1;" onclick="confirmDelete()">🗑 Delete</button>
+        <button class="btn-cancel" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     REPORT VIEWER (FULL SCREEN)
+================================================================ -->
+<div class="report-viewer" id="reportViewer">
+  <div class="viewer-topbar">
+    <button class="viewer-back" onclick="closeReport()">← Back</button>
+    <div class="viewer-breadcrumb">
+      EEE Lab Vault / <span id="viewerCat"></span> / <span id="viewerTitle" style="color:var(--text)"></span>
+    </div>
+    <div class="viewer-actions">
+      <button class="viewer-btn" onclick="exportCurrentPDF()">⬇ PDF</button>
+      <button class="viewer-btn" onclick="exportCurrentDOCX()">⬇ DOCX</button>
+      <button class="viewer-btn" onclick="editCurrentReport()">✏ Edit</button>
+      <button class="viewer-btn danger" onclick="deleteCurrentReport()">🗑 Delete</button>
+    </div>
+  </div>
+  <div class="viewer-content" id="viewerContent"></div>
+</div>
+
+
+<script src="script.js"></script>
+</body>
+</html>
