@@ -2,11 +2,18 @@
   const ns = global.EEEVault = global.EEEVault || {};
   const config = ns.config;
   const utils = ns.utils;
-  const templates = ns.templates;
-  const backend = ns.backend;
-  const exporters = ns.exporters;
-  const auth = ns.auth;
+  let templates = ns.templates;
+  let backend = ns.backend;
+  let exporters = ns.exporters;
+  let auth = ns.auth;
   const coverLogoPath = "./assets/Logo_BAUSTK.svg";
+
+  function refreshServices() {
+    templates = global.EEEVault && global.EEEVault.templates ? global.EEEVault.templates : templates;
+    backend = global.EEEVault && global.EEEVault.backend ? global.EEEVault.backend : backend;
+    exporters = global.EEEVault && global.EEEVault.exporters ? global.EEEVault.exporters : exporters;
+    auth = global.EEEVault && global.EEEVault.auth ? global.EEEVault.auth : auth;
+  }
 
   const state = {
     user: null,
@@ -1833,6 +1840,7 @@
   }
 
   async function bootstrap() {
+    refreshServices();
     cacheDom();
     mountRichTextToolbars();
     renderCategoryOptions();
