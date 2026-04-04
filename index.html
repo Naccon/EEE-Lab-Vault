@@ -49,7 +49,7 @@
             class="search-input"
             type="search"
             autocomplete="off"
-            placeholder="Search by title, subject, teacher, code, result..."
+            placeholder="Search by title, subject, faculty, code, result..."
           >
         </label>
       </div>
@@ -59,9 +59,9 @@
           <span class="status-dot"></span>
           <span id="autosaveTopStatus">Vault ready</span>
         </div>
-        <button id="openDashboardBtn" class="btn btn-ghost hidden" type="button">User Dashboard</button>
+        <button id="openDashboardBtn" class="btn btn-ghost hidden" type="button">Admin Console</button>
         <button id="themeToggle" class="btn btn-ghost" type="button">Light Mode</button>
-        <button id="openAuthBtn" class="btn btn-ghost" type="button">Switch User</button>
+        <button id="openAuthBtn" class="btn btn-ghost" type="button">Sign In</button>
         <button id="openEditorBtn" class="btn btn-primary hidden" type="button" hidden aria-hidden="true">+ New Report</button>
       </div>
     </header>
@@ -137,7 +137,7 @@
             </label>
 
             <label class="field field-inline" for="teacherCategoryFilter">
-              <span class="field-label">Teacher Category</span>
+              <span class="field-label">Faculty Category</span>
               <select id="teacherCategoryFilter" class="field-input">
                 <option value="all">All Categories</option>
               </select>
@@ -349,7 +349,7 @@
           <div class="form-section-header">
             <div>
               <p class="section-kicker">EDITABLE ACADEMIC FIELDS</p>
-              <h3>Course + Instructor Metadata</h3>
+              <h3>Course + Faculty Metadata</h3>
             </div>
             <div class="form-inline-actions">
               <label class="check-row" for="rememberAcademic">
