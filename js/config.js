@@ -2,13 +2,13 @@
   const ns = global.EEEVault = global.EEEVault || {};
 
   ns.config = Object.freeze({
-    version: 5,
+    version: 6,
     appName: "EEE Lab Vault",
+    ENABLE_ADMIN: true,
     storageKeys: {
       database: "eee-lab-vault.database",
       visitorId: "eee-lab-vault.visitor-id"
     },
-    maxUsers: 100,
     categories: [
       { id: "all", name: "All Categories", icon: "ALL", code: "GLOBAL" },
       { id: "circuits", name: "Circuit Analysis", icon: "CIR", code: "EEE-CIR" },
@@ -21,8 +21,7 @@
     quickFilters: [
       { id: "all", label: "All Reports" },
       { id: "published", label: "Published" },
-      { id: "draft", label: "Drafts" },
-      { id: "locked", label: "Locked" }
+      { id: "draft", label: "Drafts" }
     ],
     reportSections: [
       { key: "objective", title: "Objective" },
@@ -48,46 +47,28 @@
     levelOptions: ["Level 1", "Level 2", "Level 3", "Level 4"],
     termOptions: ["Term 1", "Term 2"],
     designationSuggestions: [
-      "Lecturer, Department of EEE",
-      "Senior Lecturer, Department of EEE",
-      "Assistant Professor, Department of EEE",
-      "Associate Professor, Department of EEE",
-      "Professor, Department of EEE"
+      "Lecturer",
+      "Senior Lecturer",
+      "Assistant Professor",
+      "Associate Professor",
+      "Professor"
     ],
-    seedUsers: [
-      {
-        id: "user-student",
-        username: "student@vault.local",
-        email: "student@vault.local",
-        studentId: "2024-EEE-001",
-        loginSecret: "2024-EEE-001",
-        name: "Naccon",
-        role: "Student Researcher",
-        roleKey: "student",
-        accessMode: "edit",
-        department: "Department of Electrical and Electronic Engineering",
-        level: "Level 2",
-        term: "Term 1",
-        section: "Section A",
-        status: "active"
-      },
-      {
-        id: "user-superadmin",
-        username: "superadmin@vault.local",
-        email: "superadmin@vault.local",
-        studentId: "SUPER-ADMIN-001",
-        loginSecret: "SUPER-ADMIN-001",
-        name: "Naimi Super Admin",
-        role: "Super Admin",
-        roleKey: "super_admin",
-        accessMode: "super_admin",
-        department: "EEE Digital Archive",
-        level: "Admin",
-        term: "System",
-        section: "Control",
-        status: "active"
-      }
-    ],
+    superAdmin: {
+      id: "user-superadmin",
+      username: "superadmin@vault.local",
+      email: "superadmin@vault.local",
+      studentId: "SUPER-ADMIN-001",
+      loginSecret: "SUPER-ADMIN-001",
+      name: "Naimi Super Admin",
+      role: "Super Admin",
+      roleKey: "super_admin",
+      accessMode: "super_admin",
+      department: "EEE Digital Archive",
+      level: "Admin",
+      term: "System",
+      section: "Control",
+      status: "active"
+    },
     defaultStudentProfile: {
       studentName: "Naccon",
       studentId: "2024-EEE-001",

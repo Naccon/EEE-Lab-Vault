@@ -353,7 +353,7 @@
       total: state.reports.length,
       draft: state.reports.filter((report) => report.status === "draft").length,
       published: state.reports.filter((report) => report.status === "published").length,
-      locked: state.reports.filter((report) => report.lockAcademicFields).length
+      locked: 0
     };
   }
 
@@ -486,18 +486,18 @@
   function renderUserDashboard() {
     if (!state.dashboard) {
       dom.dashboardStats.innerHTML = "";
-      dom.dashboardUserList.innerHTML = templates.renderUserDashboard(null, state.dashboardSearch);
+      dom.dashboardUserList.innerHTML = templates.renderUserDashboard(null, "");
       dom.dashboardLogs.innerHTML = templates.renderActivityLog(null);
       return;
     }
 
     dom.dashboardStats.innerHTML = `
-      <article class="stat-card"><span class="stat-value">${state.dashboard.totalUsers}</span><span class="stat-label">Visible Users</span></article>
-      <article class="stat-card"><span class="stat-value">${state.dashboard.activeUsers}</span><span class="stat-label">Active</span></article>
-      <article class="stat-card"><span class="stat-value">${state.dashboard.suspendedUsers}</span><span class="stat-label">Suspended</span></article>
-      <article class="stat-card"><span class="stat-value">${config.maxUsers}</span><span class="stat-label">Dashboard Capacity</span></article>
+      <article class="stat-card"><span class="stat-value">${state.dashboard.totalReports}</span><span class="stat-label">Total Reports</span></article>
+      <article class="stat-card"><span class="stat-value">${state.dashboard.publishedReports}</span><span class="stat-label">Published</span></article>
+      <article class="stat-card"><span class="stat-value">${state.dashboard.draftReports}</span><span class="stat-label">Drafts</span></article>
+      <article class="stat-card"><span class="stat-value">${state.dashboard.todayViewerCount}</span><span class="stat-label">Watching Today</span></article>
     `;
-    dom.dashboardUserList.innerHTML = templates.renderUserDashboard(state.dashboard, state.dashboardSearch);
+    dom.dashboardUserList.innerHTML = templates.renderUserDashboard(state.dashboard, "");
     dom.dashboardLogs.innerHTML = templates.renderActivityLog(state.dashboard);
   }
 
@@ -534,7 +534,7 @@
     dom.emptyState.classList.toggle("hidden", filteredReports.length !== 0);
     dom.reportsGrid.classList.toggle("hidden", filteredReports.length === 0);
     dom.resumeDraftBtn.classList.toggle("hidden", !state.draft);
-    dom.openDashboardBtn.classList.toggle("hidden", !state.security.canAdministerUsers);
+    dom.openDashboardBtn.classList.toggle("hidden", !config.ENABLE_ADMIN || !state.security.canAdministerUsers);
     const canCreateReports = Boolean(state.user && utils.canEditContent(state.user));
     dom.openEditorBtn.classList.toggle("hidden", !canCreateReports);
     dom.emptyCreateBtn.classList.toggle("hidden", !canCreateReports);
@@ -547,6 +547,8 @@
         ? "Try another search term, switch category, or create a new report."
         : "Try another search term or switch category.";
     }
+    dom.openAuthBtn.classList.toggle("hidden", !config.ENABLE_ADMIN);
+    dom.openAuthBtn.hidden = !config.ENABLE_ADMIN;
     dom.openAuthBtn.textContent = state.user ? "Sign Out" : "Sign In";
     renderSubjectOptions();
     renderAcademicFilterOptions();
@@ -610,9 +612,8 @@
   }
 
   function updateAcademicLockState() {
-    const locked = dom.lockAcademicFields.checked;
     [dom.subjectName, dom.subjectCode, dom.teacherName, dom.teacherDesignation].forEach((element) => {
-      element.disabled = locked;
+      element.disabled = false;
     });
   }
 
@@ -1014,7 +1015,7 @@
 
   function evaluateAcademicSuggestion(autoApply) {
     const profile = findAcademicProfile(dom.subjectName.value, dom.subjectCode.value);
-    if (!profile || dom.lockAcademicFields.checked) {
+    if (!profile) {
       renderAcademicSuggestion(null);
       return;
     }
@@ -1105,7 +1106,9 @@
     dom.teacherName.value = data.academic.teacherName || "";
     dom.teacherDesignation.value = data.academic.teacherDesignation || "";
     dom.rememberAcademic.checked = data.rememberAcademic !== false;
-    dom.lockAcademicFields.checked = Boolean(data.lockAcademicFields);
+    if (dom.lockAcademicFields) {
+      dom.lockAcademicFields.checked = false;
+    }
     updateAcademicLockState();
 
     dom.reportForm.elements.namedItem("objective").value = data.sections.objective || "";
@@ -1142,7 +1145,7 @@
       summary: dom.reportForm.elements.namedItem("summary").value.trim(),
       experimentNo: dom.reportForm.elements.namedItem("experimentNo").value.trim(),
       experimentDate: dom.reportForm.elements.namedItem("experimentDate").value,
-      lockAcademicFields: dom.lockAcademicFields.checked,
+      lockAcademicFields: false,
       rememberAcademic: dom.rememberAcademic.checked,
       student: {
         studentName: dom.reportForm.elements.namedItem("studentName").value.trim(),
@@ -1249,6 +1252,10 @@
   }
 
   function openEditor(report, options) {
+    if (!config.ENABLE_ADMIN) {
+      showToast("Admin disabled", "Editing is disabled in config.js.", "warning");
+      return false;
+    }
     if (!state.user) {
       auth.openAuth(dom);
       showToast("Sign in required", "Please sign in to create or edit reports.", "warning");
@@ -1474,6 +1481,10 @@
   }
 
   async function handleLogin(username, password) {
+    if (!config.ENABLE_ADMIN) {
+      showToast("Admin disabled", "Admin access is disabled in config.js.", "warning");
+      return;
+    }
     auth.clearAuthAlert(dom);
     setLoading(true, "Signing in...");
     try {
@@ -1491,6 +1502,10 @@
   }
 
   async function handleAuthAction() {
+    if (!config.ENABLE_ADMIN) {
+      showToast("Admin disabled", "Login is currently disabled by configuration.", "warning");
+      return;
+    }
     if (!state.user) {
       auth.openAuth(dom);
       return;
@@ -1592,6 +1607,10 @@
     });
     dom.openEditorBtn.addEventListener("click", () => openEditor(null, { focusField: "reportTitle" }));
     dom.openDashboardBtn.addEventListener("click", () => {
+      if (!config.ENABLE_ADMIN) {
+        showToast("Admin disabled", "The admin console is disabled in config.js.", "warning");
+        return;
+      }
       renderUserDashboard();
       openModal("dashboard");
     });
@@ -1608,89 +1627,6 @@
       event.preventDefault();
       handleLogin(dom.authUsername.value, dom.authPassword.value);
     });
-    dom.dashboardSearch.addEventListener("input", (event) => {
-      state.dashboardSearch = event.target.value;
-      renderUserDashboard();
-    });
-    dom.dashboardSeedBtn.addEventListener("click", async () => {
-      setLoading(true, "Preparing dashboard cohort...");
-      try {
-        const payload = await backend.seedUserCohort();
-        populatePayload(payload);
-        renderUserDashboard();
-        showToast("Dashboard expanded", "User dashboard is now filled to the 100-user capacity.", "success");
-      } catch (error) {
-        showToast("Dashboard update failed", error.message || "Unable to expand the user dashboard.", "danger");
-      } finally {
-        setLoading(false);
-      }
-    });
-    dom.dashboardUserList.addEventListener("click", async (event) => {
-      const button = event.target.closest("[data-action]");
-      if (!button) {
-        return;
-      }
-      const action = button.getAttribute("data-action");
-      const userId = button.getAttribute("data-user-id");
-
-      if (action === "toggle-user-status") {
-        setLoading(true, "Updating user status...");
-        try {
-          const payload = await backend.toggleUserStatus(userId);
-          populatePayload(payload);
-          renderUserDashboard();
-          showToast("User status updated", "The selected user access state was changed.", "success");
-        } catch (error) {
-          showToast("User update failed", error.message || "Unable to update that user.", "danger");
-        } finally {
-          setLoading(false);
-        }
-        return;
-      }
-
-      if (action === "save-user-account") {
-        const card = button.closest("[data-user-card]");
-        if (!card) {
-          return;
-        }
-        const getField = (field) => {
-          const input = card.querySelector(`[data-field="${field}"]`);
-          return input ? input.value : "";
-        };
-
-        setLoading(true, "Saving user access...");
-        try {
-          const payload = await backend.updateUserAccount(userId, {
-            email: getField("email"),
-            studentId: getField("studentId"),
-            loginSecret: getField("loginSecret"),
-            accessMode: getField("accessMode")
-          });
-          populatePayload(payload);
-          renderUserDashboard();
-          showToast("User account saved", "Email, password, and access controls were updated.", "success");
-        } catch (error) {
-          showToast("Save failed", error.message || "Unable to save that user account.", "danger");
-        } finally {
-          setLoading(false);
-        }
-      }
-    });
-    dom.dashboardUserList.addEventListener("input", (event) => {
-      const input = event.target.closest('[data-field="studentId"]');
-      if (!input) {
-        return;
-      }
-      const card = input.closest("[data-user-card]");
-      if (!card || card.getAttribute("data-role-key") !== "student") {
-        return;
-      }
-      const passwordInput = card.querySelector('[data-field="loginSecret"]');
-      if (passwordInput) {
-        passwordInput.value = input.value;
-      }
-    });
-
     global.document.querySelectorAll("[data-close-modal]").forEach((button) => {
       button.addEventListener("click", () => {
         const target = button.getAttribute("data-close-modal");
@@ -1735,21 +1671,6 @@
       if (button && state.editor.currentSuggestedProfile) {
         applyAcademicProfile(state.editor.currentSuggestedProfile, { force: true });
       }
-    });
-    dom.lockAcademicFields.addEventListener("change", async (event) => {
-      if (!event.target.checked && state.editor.mode === "edit") {
-        const report = getReportById(state.editor.currentReportId);
-        if (report && report.lockAcademicFields) {
-          const confirmed = await confirmAction({
-            title: "Unlock academic fields?",
-            message: "Unlocking allows subject and teacher information to be edited for this report."
-          });
-          if (!confirmed) {
-            dom.lockAcademicFields.checked = true;
-          }
-        }
-      }
-      updateAcademicLockState();
     });
     dom.diagramUpload.addEventListener("change", async (event) => {
       const file = event.target.files && event.target.files[0];

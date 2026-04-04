@@ -1,5 +1,6 @@
 (function bootstrapUtils(global) {
   const ns = global.EEEVault = global.EEEVault || {};
+  const config = ns.config;
 
   function deepClone(value) {
     if (typeof global.structuredClone === "function") {
@@ -49,7 +50,7 @@
   }
 
   function isAdmin(user) {
-    return Boolean(user && (user.roleKey === "admin" || user.roleKey === "super_admin"));
+    return Boolean(config && config.ENABLE_ADMIN && user && user.roleKey === "super_admin");
   }
 
   function isSuperAdmin(user) {
@@ -57,13 +58,7 @@
   }
 
   function canEditContent(user) {
-    if (!user) {
-      return false;
-    }
-    if (isAdmin(user)) {
-      return true;
-    }
-    return user.accessMode !== "read";
+    return Boolean(config && config.ENABLE_ADMIN && isAdmin(user));
   }
 
   function normalizeSearch(value) {
@@ -247,7 +242,7 @@
     if (!user || !report) {
       return false;
     }
-    return isAdmin(user) || (user.id === report.authorId && canEditContent(user));
+    return isAdmin(user);
   }
 
   function parseRichTextToHtml(value) {

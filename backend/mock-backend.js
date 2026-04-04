@@ -77,6 +77,27 @@
   async function ensureSecurityState(database) {
     let changed = false;
 
+    if (!config.ENABLE_ADMIN) {
+      if (database.users.length) {
+        database.users = [];
+        changed = true;
+      }
+      clearSession(database);
+    } else {
+      const normalizedAdmin = storage.normalizeUser(config.superAdmin);
+      const currentAdmin = database.users[0] || {};
+      database.users = [storage.normalizeUser(Object.assign({}, normalizedAdmin, currentAdmin, {
+        id: normalizedAdmin.id,
+        username: normalizedAdmin.username,
+        email: normalizedAdmin.email,
+        role: "Super Admin",
+        roleKey: "super_admin",
+        accessMode: "super_admin",
+        status: "active"
+      }))];
+      changed = true;
+    }
+
     for (const user of database.users) {
       if (!user.email && user.username) {
         user.email = user.username;
@@ -86,12 +107,8 @@
         user.username = user.email;
         changed = true;
       }
-      if (!user.studentId && user.roleKey === "student") {
-        user.studentId = user.loginSecret || user.password || "";
-        changed = true;
-      }
-      if (!user.accessMode) {
-        user.accessMode = user.roleKey === "super_admin" ? "super_admin" : "edit";
+      if (!user.accessMode || user.accessMode !== "super_admin") {
+        user.accessMode = "super_admin";
         changed = true;
       }
       if (!user.loginSecret) {
@@ -108,14 +125,15 @@
         user.password = "";
         changed = true;
       }
-      if (!user.status) {
+      if (!user.status || user.status !== "active") {
         user.status = "active";
         changed = true;
       }
-      if (!user.roleKey) {
-        user.roleKey = utils.normalizeSearch(user.role).includes("super") ? "super_admin" : (utils.normalizeSearch(user.role).includes("admin") ? "admin" : "student");
+      if (!user.roleKey || user.roleKey !== "super_admin") {
+        user.roleKey = "super_admin";
         changed = true;
       }
+      user.role = "Super Admin";
     }
 
     if (!database.analytics) {
@@ -301,22 +319,14 @@
   }
 
   function getVisibleUsers(database, currentUser) {
-    if (!currentUser) {
-      return [];
-    }
-    return utils.isAdmin(currentUser)
-      ? database.users.slice(0, config.maxUsers)
-      : [currentUser];
+    return currentUser ? [currentUser] : [];
   }
 
   function getVisibleReports(database, currentUser) {
-    if (!currentUser) {
+    if (!config.ENABLE_ADMIN || !currentUser) {
       return database.reports.filter((report) => report.status === "published");
     }
-    if (utils.isAdmin(currentUser)) {
-      return database.reports;
-    }
-    return database.reports.filter((report) => report.status === "published" || report.authorId === currentUser.id);
+    return database.reports;
   }
 
   function buildSecurityPayload(database, currentUser) {
@@ -328,7 +338,7 @@
       lastActivityAt: session.lastActivityAt || "",
       sessionRemainingMs: remainingMs,
       timeoutMs: config.security.sessionTimeoutMs,
-      canAdministerUsers: utils.isSuperAdmin(currentUser),
+      canAdministerUsers: Boolean(config.ENABLE_ADMIN && utils.isSuperAdmin(currentUser)),
       roleKey: currentUser ? currentUser.roleKey : "viewer",
       accessMode: currentUser ? currentUser.accessMode : "viewer",
       todayViewerCount: buildTodayViewerCount(database)
@@ -336,38 +346,19 @@
   }
 
   function buildUserDashboard(database, currentUser) {
-    if (!utils.isSuperAdmin(currentUser)) {
+    if (!config.ENABLE_ADMIN || !utils.isSuperAdmin(currentUser)) {
       return null;
     }
 
-    const users = getVisibleUsers(database, currentUser).map((user) => {
-      const ownedReports = database.reports.filter((report) => report.authorId === user.id);
-      return {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        role: user.role,
-        roleKey: user.roleKey,
-        email: user.email,
-        studentId: user.studentId || "",
-        loginSecret: user.loginSecret || "",
-        accessMode: user.accessMode || "edit",
-        department: user.department,
-        level: user.level,
-        term: user.term,
-        section: user.section,
-        status: user.status,
-        lastLoginAt: user.lastLoginAt || "",
-        reportCount: ownedReports.length,
-        draftCount: ownedReports.filter((report) => report.status === "draft").length,
-        publishedCount: ownedReports.filter((report) => report.status === "published").length
-      };
-    }).slice(0, config.maxUsers);
-
     return {
-      totalUsers: users.length,
-      activeUsers: users.filter((user) => user.status === "active").length,
-      suspendedUsers: users.filter((user) => user.status !== "active").length,
+      totalUsers: 1,
+      activeUsers: 1,
+      suspendedUsers: 0,
+      totalReports: database.reports.length,
+      publishedReports: database.reports.filter((report) => report.status === "published").length,
+      draftReports: database.reports.filter((report) => report.status === "draft").length,
+      adminName: currentUser.name,
+      adminEmail: currentUser.email,
       todayViewerCount: buildTodayViewerCount(database),
       activityLog: utils.toArray(database.security.auditLog).slice(0, 40).map((entry) => {
         const actor = database.users.find((user) => user.id === entry.actorId) || null;
@@ -383,8 +374,7 @@
           ipAddress: entry.details && entry.details.ipAddress ? entry.details.ipAddress : "Unavailable in static mode",
           macAddress: entry.details && entry.details.macAddress ? entry.details.macAddress : "Unavailable in browser security model"
         };
-      }),
-      users
+      })
     };
   }
 
@@ -421,9 +411,12 @@
   }
 
   async function login(credentials) {
+    if (!config.ENABLE_ADMIN) {
+      return Promise.reject({ message: "Admin access is disabled in config." });
+    }
     const check = validation.validateCredentials(credentials);
     if (!check.valid) {
-      return Promise.reject({ message: "Email address and student ID or passcode are required.", errors: check.errors });
+      return Promise.reject({ message: "Super admin email and passcode are required.", errors: check.errors });
     }
 
     const database = await ensureSecurityState(storage.readDatabase());
@@ -434,10 +427,9 @@
       return Promise.reject({ message: "Too many failed login attempts. Please wait and try again.", errors: { password: "Account temporarily locked." } });
     }
 
-    const user = database.users.find((entry) => (
-      utils.normalizeSearch(entry.email || entry.username) === usernameKey
-      || utils.normalizeSearch(entry.username) === usernameKey
-    ));
+    const user = database.users[0] && utils.normalizeSearch(database.users[0].email || database.users[0].username) === usernameKey
+      ? database.users[0]
+      : null;
     const expectedHash = user ? await hashPassword(user.email || user.username, credentials.password) : "";
 
     if (!user || user.passwordHash !== expectedHash) {
@@ -497,6 +489,9 @@
   }
 
   async function saveDraft(userId, draftPayload) {
+    if (!config.ENABLE_ADMIN) {
+      return Promise.reject({ message: "Admin editing is disabled in config." });
+    }
     const database = storage.readDatabase();
     database.drafts[userId] = {
       savedAt: utils.nowIso(),
@@ -515,6 +510,9 @@
   }
 
   async function saveReport(reportPayload) {
+    if (!config.ENABLE_ADMIN) {
+      return Promise.reject({ message: "Admin editing is disabled in config." });
+    }
     const payload = stripEditorOnlyFields(reportPayload);
     const database = await ensureSecurityState(storage.readDatabase());
     const existingIndex = database.reports.findIndex((report) => report.id === payload.id);
@@ -524,7 +522,7 @@
       return Promise.reject({ message: "Your session expired. Please sign in again." });
     }
     if (!utils.canEditContent(currentUser)) {
-      return Promise.reject({ message: "Your account is in read-only mode. Editing is disabled by the super admin." });
+      return Promise.reject({ message: "Super admin access is required for editing." });
     }
     if (previousReport && !utils.canManageReport(currentUser, previousReport)) {
       return Promise.reject({ message: "You do not have permission to edit this report." });
@@ -608,7 +606,7 @@
       return Promise.reject({ message: "Your session expired. Please sign in again." });
     }
     if (!utils.canEditContent(currentUser)) {
-      return Promise.reject({ message: "Your account is in read-only mode. Duplicating reports is disabled." });
+      return Promise.reject({ message: "Super admin access is required for duplication." });
     }
     if (source.status !== "published" && !utils.canManageReport(currentUser, source)) {
       return Promise.reject({ message: "You do not have permission to duplicate this draft." });
@@ -686,98 +684,6 @@
     });
   }
 
-  async function seedUserCohort() {
-    const database = await ensureSecurityState(storage.readDatabase());
-    const currentUser = getCurrentUser(database);
-    if (!utils.isSuperAdmin(currentUser)) {
-      return Promise.reject({ message: "Super admin access is required." });
-    }
-    database.users = sampleData.createCohortUsers(config.maxUsers, database.users).map(storage.normalizeUser);
-    await ensureSecurityState(database);
-    recordAudit(database, "SEED_USER_COHORT", currentUser.id, { totalUsers: database.users.length });
-    storage.writeDatabase(database);
-    return withDelay(composeBootPayload(database));
-  }
-
-  async function toggleUserStatus(userId) {
-    const database = storage.readDatabase();
-    const currentUser = getCurrentUser(database);
-    if (!utils.isSuperAdmin(currentUser)) {
-      return Promise.reject({ message: "Super admin access is required." });
-    }
-    const user = database.users.find((entry) => entry.id === userId);
-    if (!user) {
-      return Promise.reject({ message: "User not found." });
-    }
-    if (user.id === currentUser.id) {
-      return Promise.reject({ message: "You cannot change your own admin status from this dashboard." });
-    }
-    user.status = user.status === "active" ? "suspended" : "active";
-    recordAudit(database, "TOGGLE_USER_STATUS", currentUser.id, { userId, status: user.status });
-    storage.writeDatabase(database);
-    return withDelay(composeBootPayload(database));
-  }
-
-  async function updateUserAccount(userId, patch) {
-    const database = await ensureSecurityState(storage.readDatabase());
-    const currentUser = getCurrentUser(database);
-    if (!utils.isSuperAdmin(currentUser)) {
-      return Promise.reject({ message: "Super admin access is required." });
-    }
-
-    const user = database.users.find((entry) => entry.id === userId);
-    if (!user) {
-      return Promise.reject({ message: "User not found." });
-    }
-    if (user.id === currentUser.id && patch.accessMode && patch.accessMode !== "super_admin") {
-      return Promise.reject({ message: "The active super admin cannot remove their own elevated access here." });
-    }
-
-    const nextEmail = utils.normalizeText(patch.email || user.email);
-    const nextStudentId = utils.normalizeText(patch.studentId || user.studentId || patch.loginSecret || user.loginSecret);
-    let nextSecret = utils.normalizeText(patch.loginSecret || user.loginSecret);
-    if (!nextEmail) {
-      return Promise.reject({ message: "Email address is required for managed users." });
-    }
-    if (!utils.isLikelyEmail(nextEmail)) {
-      return Promise.reject({ message: "Please enter a valid email address for this account." });
-    }
-    const duplicateEmail = database.users.find((entry) => entry.id !== user.id && utils.normalizeSearch(entry.email || entry.username) === utils.normalizeSearch(nextEmail));
-    if (duplicateEmail) {
-      return Promise.reject({ message: "That email address is already assigned to another user." });
-    }
-
-    if (user.roleKey === "student") {
-      if (!nextStudentId) {
-        return Promise.reject({ message: "Student ID is required for student accounts." });
-      }
-      nextSecret = nextStudentId;
-    }
-
-    if (!nextSecret) {
-      return Promise.reject({ message: "Password or student ID is required for managed users." });
-    }
-
-    user.email = nextEmail;
-    user.username = nextEmail;
-    user.studentId = nextStudentId || user.studentId;
-    user.loginSecret = nextSecret;
-    if (user.roleKey === "student") {
-      user.studentId = nextStudentId;
-    }
-    if (patch.accessMode && user.roleKey !== "super_admin") {
-      user.accessMode = patch.accessMode === "read" ? "read" : "edit";
-    }
-    user.passwordHash = await hashPassword(user.email, user.loginSecret);
-    recordAudit(database, "UPDATE_USER_ACCOUNT", currentUser.id, {
-      userId,
-      email: user.email,
-      accessMode: user.accessMode
-    });
-    storage.writeDatabase(database);
-    return withDelay(composeBootPayload(database));
-  }
-
   async function getAcademicSuggestions() {
     const database = storage.readDatabase();
     return withDelay(buildAcademicSuggestions(database));
@@ -794,9 +700,6 @@
     restoreVersion,
     saveDraft,
     saveReport,
-    seedUserCohort,
-    toggleUserStatus,
-    updateUserAccount,
     touchSession,
     toggleReportStatus,
     updateTheme

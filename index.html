@@ -356,10 +356,6 @@
                 <input id="rememberAcademic" name="rememberAcademic" type="checkbox" checked>
                 <span>Remember and suggest this profile</span>
               </label>
-              <label class="check-row" for="lockAcademicFields">
-                <input id="lockAcademicFields" name="lockAcademicFields" type="checkbox">
-                <span>Lock for this report</span>
-              </label>
             </div>
           </div>
 
@@ -377,13 +373,13 @@
             </label>
 
             <label class="field" for="teacherName">
-              <span class="field-label">Teacher Name *</span>
+              <span class="field-label">Faculty Name *</span>
               <input id="teacherName" name="teacherName" class="field-input academic-field" list="teacherNameSuggestions" type="text" placeholder="Md. Saiful Islam">
             </label>
 
             <label class="field" for="teacherDesignation">
-              <span class="field-label">Teacher Designation *</span>
-              <input id="teacherDesignation" name="teacherDesignation" class="field-input academic-field" list="teacherDesignationSuggestions" type="text" placeholder="Associate Professor, Department of EEE">
+              <span class="field-label">Designation *</span>
+              <input id="teacherDesignation" name="teacherDesignation" class="field-input academic-field" list="teacherDesignationSuggestions" type="text" placeholder="Assistant Professor or Lecturer">
             </label>
           </div>
         </section>
@@ -560,22 +556,15 @@
     <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="dashboardTitle">
       <div class="modal-header">
         <div>
-          <p class="modal-kicker">ADMIN USER DASHBOARD</p>
-          <h2 id="dashboardTitle" class="modal-title">User Management Console</h2>
+          <p class="modal-kicker">SUPER ADMIN CONSOLE</p>
+          <h2 id="dashboardTitle" class="modal-title">Admin Activity Console</h2>
         </div>
         <div class="modal-header-actions">
-          <button id="dashboardSeedBtn" class="btn btn-secondary" type="button">Fill To 100 Users</button>
           <button class="icon-btn" type="button" data-close-modal="dashboard" aria-label="Close dashboard">X</button>
         </div>
       </div>
       <div class="modal-body">
         <section class="form-section">
-          <div class="form-grid">
-            <label class="field field-span-2" for="dashboardSearch">
-              <span class="field-label">Search Users</span>
-              <input id="dashboardSearch" class="field-input" type="search" placeholder="Search by name, username, email, level, term, section">
-            </label>
-          </div>
           <div id="dashboardStats" class="stat-grid"></div>
         </section>
         <section class="form-section">
@@ -621,18 +610,18 @@
       <div class="auth-header">
         <p class="modal-kicker">LOCAL ACCESS CONTROL</p>
         <h2>Sign into the vault</h2>
-        <p>Published reports stay visible without login. Sign in only for editing, autosave, drafts, or super-admin management.</p>
+        <p>Published reports stay visible without login. Sign in only for editing, drafts, publishing, or super-admin control.</p>
       </div>
 
       <form id="authForm" class="auth-form">
         <label class="field" for="authUsername">
           <span class="field-label">Email Address</span>
-          <input id="authUsername" name="username" class="field-input" type="email" autocomplete="username" placeholder="student@vault.local">
+          <input id="authUsername" name="username" class="field-input" type="email" autocomplete="username" placeholder="superadmin@vault.local">
         </label>
 
         <label class="field" for="authPassword">
-          <span class="field-label">Student ID / Passcode</span>
-          <input id="authPassword" name="password" class="field-input" type="password" autocomplete="current-password" placeholder="Enter the student ID or super-admin passcode">
+          <span class="field-label">Super Admin Passcode</span>
+          <input id="authPassword" name="password" class="field-input" type="password" autocomplete="current-password" placeholder="Enter the super-admin passcode">
         </label>
 
         <div id="authAlert" class="form-alert hidden" role="alert"></div>
@@ -643,7 +632,7 @@
         </div>
 
         <div class="auth-hint">
-          Use your assigned email address and student ID or administrative passcode.
+          Use the configured super-admin email address and passcode only.
         </div>
       </form>
     </div>

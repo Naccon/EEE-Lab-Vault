@@ -12,10 +12,6 @@
       `;
     }
 
-    const accessLabel = user.roleKey === "super_admin"
-      ? "Super Admin Access"
-      : (user.accessMode === "read" ? "Read-Only Access" : "Editing Access");
-
     return `
       <div class="profile-card-title">
         <div class="profile-user">
@@ -30,12 +26,12 @@
         <span>${utils.escapeHtml(user.department)}</span>
         <span>${utils.escapeHtml(user.email)}</span>
         <span>${utils.escapeHtml(user.level)} // ${utils.escapeHtml(user.term)} // ${utils.escapeHtml(user.section)}</span>
-        <span>Owned reports: ${counts.owned}</span>
+        <span>Managed reports: ${counts.owned}</span>
       </div>
       <div class="profile-badges">
         <span class="pill">Drafts ${counts.drafts}</span>
         <span class="pill">Published ${counts.published}</span>
-        <span class="pill">${utils.escapeHtml(accessLabel)}</span>
+        <span class="pill">Super Admin Access</span>
       </div>
     `;
   }
@@ -54,15 +50,12 @@
     }
 
     const minutesRemaining = Math.max(1, Math.round((security.sessionRemainingMs || 0) / 60000));
-    const accessLabel = security.roleKey === "super_admin"
-      ? "Super admin controls enabled"
-      : (security.accessMode === "read" ? "Read-only editing lock" : "Editing enabled");
     return `
       <article class="memory-card is-security">
         <div class="memory-title">Session secured</div>
         <div class="memory-caption">Expires in approximately ${minutesRemaining} minute${minutesRemaining === 1 ? "" : "s"}</div>
         <div class="memory-pills">
-          <span class="pill">${utils.escapeHtml(accessLabel)}</span>
+          <span class="pill">Super admin controls enabled</span>
           <span class="pill">Watching today: ${security.todayViewerCount || 0}</span>
           <span class="pill">Activity tracked locally</span>
         </div>
@@ -150,14 +143,13 @@
           <div class="report-card-actions">
             <span class="report-tag">${utils.escapeHtml(report.academic.subjectName)}</span>
             <span class="report-tag ${report.status === "published" ? "is-published" : "is-draft"}">${utils.escapeHtml(utils.humanizeStatus(report.status))}</span>
-            ${report.lockAcademicFields ? '<span class="report-tag is-locked">Locked</span>' : ""}
           </div>
         </div>
         <h3 class="featured-title">${utils.escapeHtml(report.title)}</h3>
         <p class="featured-copy">${utils.escapeHtml(report.summary)}</p>
         <div class="featured-meta">
           <div class="meta-box">
-            <span class="meta-label">Teacher</span>
+            <span class="meta-label">Faculty</span>
             <span class="meta-value">${utils.escapeHtml(report.academic.teacherName)}</span>
           </div>
           <div class="meta-box">
@@ -187,7 +179,6 @@
         </div>
         <div class="card-meta-row">
           <span class="report-tag">${utils.escapeHtml(report.academic.subjectName)}</span>
-          ${report.lockAcademicFields ? '<span class="report-tag is-locked">Locked</span>' : ""}
         </div>
         <h3 class="report-card-title">${utils.escapeHtml(report.title)}</h3>
         <p class="report-card-summary">${utils.escapeHtml(report.summary)}</p>
@@ -247,7 +238,6 @@
           <div class="report-card-actions">
             <span class="report-tag">${utils.escapeHtml(report.academic.subjectName)}</span>
             <span class="report-tag ${report.status === "published" ? "is-published" : "is-draft"}">${utils.escapeHtml(utils.humanizeStatus(report.status))}</span>
-            ${report.lockAcademicFields ? '<span class="report-tag is-locked">Locked fields</span>' : ""}
           </div>
           <h1 class="viewer-title">${utils.escapeHtml(report.title)}</h1>
           <div class="viewer-summary report-rich-copy">${renderRichCopy(report.summary, "Not provided.")}</div>
@@ -255,7 +245,7 @@
             <div class="meta-box"><span class="meta-label">Experiment</span><span class="meta-value">${utils.escapeHtml(report.experimentNo)}</span></div>
             <div class="meta-box"><span class="meta-label">Date</span><span class="meta-value">${utils.escapeHtml(utils.formatDate(report.experimentDate))}</span></div>
             <div class="meta-box"><span class="meta-label">Subject Code</span><span class="meta-value">${utils.escapeHtml(report.academic.subjectCode)}</span></div>
-            <div class="meta-box"><span class="meta-label">Teacher</span><span class="meta-value">${utils.escapeHtml(report.academic.teacherName)}</span></div>
+            <div class="meta-box"><span class="meta-label">Faculty</span><span class="meta-value">${utils.escapeHtml(report.academic.teacherName)}</span></div>
           </div>
         </header>
 
@@ -295,8 +285,8 @@
             <div class="report-academic-grid">
               <div class="report-academic-box"><span class="report-academic-label">Subject Name</span>${utils.escapeHtml(report.academic.subjectName)}</div>
               <div class="report-academic-box"><span class="report-academic-label">Subject Code</span>${utils.escapeHtml(report.academic.subjectCode)}</div>
-              <div class="report-academic-box"><span class="report-academic-label">Teacher Name</span>${utils.escapeHtml(report.academic.teacherName)}</div>
-              <div class="report-academic-box"><span class="report-academic-label">Teacher Designation</span>${utils.escapeHtml(report.academic.teacherDesignation)}</div>
+              <div class="report-academic-box"><span class="report-academic-label">Faculty Name</span>${utils.escapeHtml(report.academic.teacherName)}</div>
+              <div class="report-academic-box"><span class="report-academic-label">Designation</span>${utils.escapeHtml(report.academic.teacherDesignation)}</div>
             </div>
           </article>
 
@@ -356,86 +346,31 @@
 
   function renderUserDashboard(dashboard, searchTerm) {
     if (!dashboard) {
-      return `<div class="memory-card is-empty">Super admin access is required to view the user dashboard.</div>`;
+      return `<div class="memory-card is-empty">Super admin access is required to view the admin console.</div>`;
     }
-
-    const query = utils.normalizeSearch(searchTerm);
-    const users = utils.toArray(dashboard.users).filter((user) => {
-      if (!query) {
-        return true;
-      }
-      const haystack = [
-        user.name,
-        user.username,
-        user.email,
-        user.level,
-        user.term,
-        user.section
-      ].map(utils.normalizeSearch).join(" ");
-      return haystack.includes(query);
-    });
-
-    if (!users.length) {
-      return `<div class="memory-card is-empty">No users matched the current dashboard search.</div>`;
-    }
-
-    return users.map((user) => `
-      <article class="dashboard-user-card" data-user-card="true" data-user-id="${user.id}" data-role-key="${user.roleKey}">
+    return `
+      <article class="dashboard-user-card">
         <div class="dashboard-user-head">
           <div>
-            <div class="dashboard-user-title">${utils.escapeHtml(user.name)}</div>
-            <div class="dashboard-user-subtitle">${utils.escapeHtml(user.username)} // ${utils.escapeHtml(user.email)}</div>
+            <div class="dashboard-user-title">${utils.escapeHtml(dashboard.adminName || "Super Admin")}</div>
+            <div class="dashboard-user-subtitle">${utils.escapeHtml(dashboard.adminEmail || "")}</div>
           </div>
           <div class="profile-badges">
-            <span class="status-pill ${user.status === "active" ? "is-active" : "is-suspended"}">${utils.escapeHtml(user.status)}</span>
-            <span class="status-pill ${user.roleKey === "super_admin" || user.roleKey === "admin" ? "is-admin" : "is-active"}">${utils.escapeHtml(user.role)}</span>
-            <span class="status-pill ${user.roleKey === "super_admin" ? "is-admin" : (user.accessMode === "read" ? "is-readonly" : "is-active")}">${utils.escapeHtml(user.roleKey === "super_admin" ? "super admin" : user.accessMode)}</span>
+            <span class="status-pill is-admin">super admin</span>
+            <span class="status-pill is-active">active</span>
           </div>
         </div>
         <div class="dashboard-user-grid">
-          <div class="meta-box"><span class="meta-label">Level</span><span class="meta-value">${utils.escapeHtml(user.level)}</span></div>
-          <div class="meta-box"><span class="meta-label">Term</span><span class="meta-value">${utils.escapeHtml(user.term)}</span></div>
-          <div class="meta-box"><span class="meta-label">Section</span><span class="meta-value">${utils.escapeHtml(user.section)}</span></div>
-          <div class="meta-box"><span class="meta-label">Reports</span><span class="meta-value">${user.reportCount}</span></div>
-        </div>
-        <div class="dashboard-user-form">
-          <label class="field">
-            <span class="field-label">Email / Username</span>
-            <input class="field-input" data-field="email" type="email" value="${utils.escapeHtml(user.email)}" placeholder="student@vault.local">
-          </label>
-          <label class="field">
-            <span class="field-label">${user.roleKey === "student" ? "Student ID" : "Admin ID / Key"}</span>
-            <input class="field-input" data-field="studentId" type="text" value="${utils.escapeHtml(user.studentId || user.loginSecret || "")}" placeholder="2024-EEE-001">
-          </label>
-          <label class="field">
-            <span class="field-label">Visible Password</span>
-            <input class="field-input" data-field="loginSecret" type="text" value="${utils.escapeHtml(user.loginSecret || "")}" ${user.roleKey === "student" ? "readonly" : ""} placeholder="Password">
-          </label>
-          <label class="field">
-            <span class="field-label">Access Mode</span>
-            <select class="field-input" data-field="accessMode" ${user.roleKey === "super_admin" ? "disabled" : ""}>
-              <option value="edit" ${user.accessMode === "edit" ? "selected" : ""}>Editing</option>
-              <option value="read" ${user.accessMode === "read" ? "selected" : ""}>Read Only</option>
-              ${user.roleKey === "super_admin" ? '<option value="super_admin" selected>Super Admin</option>' : ""}
-            </select>
-          </label>
+          <div class="meta-box"><span class="meta-label">Total Reports</span><span class="meta-value">${dashboard.totalReports || 0}</span></div>
+          <div class="meta-box"><span class="meta-label">Published</span><span class="meta-value">${dashboard.publishedReports || 0}</span></div>
+          <div class="meta-box"><span class="meta-label">Drafts</span><span class="meta-value">${dashboard.draftReports || 0}</span></div>
+          <div class="meta-box"><span class="meta-label">Watching Today</span><span class="meta-value">${dashboard.todayViewerCount || 0}</span></div>
         </div>
         <div class="dashboard-user-note">
-          ${user.roleKey === "student"
-            ? "Student accounts use the Student ID as the visible password. Changing the Student ID updates the password automatically."
-            : "Super admin accounts can keep a dedicated passcode separate from the ID field."}
-        </div>
-        <div class="dashboard-user-footer">
-          <div class="memory-caption">
-            Drafts ${user.draftCount} // Published ${user.publishedCount} // Last login ${utils.escapeHtml(user.lastLoginAt ? utils.formatDateTime(user.lastLoginAt) : "Never")}
-          </div>
-          <div class="report-card-actions">
-            <button class="mini-btn" type="button" data-action="save-user-account" data-user-id="${user.id}">Save Access</button>
-            ${user.roleKey !== "super_admin" ? `<button class="mini-btn" type="button" data-action="toggle-user-status" data-user-id="${user.id}">${user.status === "active" ? "Suspend" : "Reactivate"}</button>` : ""}
-          </div>
+          Admin access can be turned on or off directly with the ENABLE_ADMIN flag in config.js.
         </div>
       </article>
-    `).join("");
+    `;
   }
 
   function renderActivityLog(dashboard) {

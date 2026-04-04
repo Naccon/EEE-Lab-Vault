@@ -51,10 +51,12 @@
       addError(errors, "subjectCode", "Subject code should look like EEE 2103 or CSE-1101.");
     }
     if (!utils.normalizeText(academic.teacherName)) {
-      addError(errors, "teacherName", "Teacher name is required.");
+      addError(errors, "teacherName", "Faculty name is required.");
     }
     if (!utils.normalizeText(academic.teacherDesignation)) {
-      addError(errors, "teacherDesignation", "Teacher designation is required.");
+      addError(errors, "teacherDesignation", "Designation is required.");
+    } else if (/department|dept\.?/i.test(utils.normalizeText(academic.teacherDesignation))) {
+      addError(errors, "teacherDesignation", "Designation should only contain the rank, like Assistant Professor or Lecturer.");
     }
 
     const sections = report.sections || {};
@@ -80,20 +82,6 @@
       addError(errors, "dataTableRows", `Data table supports up to ${config.maxDataRows} rows.`);
     }
 
-    if (previousReport && previousReport.lockAcademicFields) {
-      const before = previousReport.academic || {};
-      const changed = [
-        "subjectName",
-        "subjectCode",
-        "teacherName",
-        "teacherDesignation"
-      ].some((field) => utils.normalizeText(before[field]) !== utils.normalizeText(academic[field]));
-
-      if (changed) {
-        addError(errors, "lockAcademicFields", "Academic fields are locked for this report. Unlock before editing them.");
-      }
-    }
-
     return {
       valid: Object.keys(errors).length === 0,
       errors
@@ -102,11 +90,18 @@
 
   function validateCredentials(credentials) {
     const errors = {};
+    if (!config.ENABLE_ADMIN) {
+      addError(errors, "username", "Admin access is currently disabled.");
+      return {
+        valid: false,
+        errors
+      };
+    }
     if (!utils.normalizeText(credentials.username)) {
       addError(errors, "username", "Email address is required.");
     }
     if (!utils.normalizeText(credentials.password)) {
-      addError(errors, "password", "Student ID or passcode is required.");
+      addError(errors, "password", "Super admin passcode is required.");
     }
     return {
       valid: Object.keys(errors).length === 0,

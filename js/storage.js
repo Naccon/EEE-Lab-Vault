@@ -6,7 +6,6 @@
 
   function createInitialDatabase() {
     const seedReports = sampleData.seedReports();
-    const seededUsers = sampleData.createCohortUsers(config.maxUsers, config.seedUsers);
     const now = utils.nowIso();
     return {
       version: config.version,
@@ -18,7 +17,7 @@
         lastActivityAt: "",
         expiresAt: ""
       },
-      users: seededUsers.map(normalizeUser),
+      users: config.ENABLE_ADMIN ? [normalizeUser(config.superAdmin)] : [],
       reports: seedReports,
       drafts: {},
       preferences: {
@@ -49,8 +48,8 @@
       passwordVersion: 0,
       name: "",
       role: "Student Researcher",
-      roleKey: "student",
-      accessMode: "edit",
+      roleKey: "super_admin",
+      accessMode: "super_admin",
       department: "Department of Electrical and Electronic Engineering",
       email: "",
       studentId: "",
@@ -143,11 +142,6 @@
     if (!database.session.userId && database.sessionUserId) {
       database.session.userId = database.sessionUserId;
     }
-    if (!database.sessionUserId && database.users[0]) {
-      database.sessionUserId = database.users[0].id;
-      database.session.userId = database.users[0].id;
-    }
-
     if (previousVersion < 3) {
       database.sessionUserId = null;
       database.session = {
@@ -157,6 +151,20 @@
         lastActivityAt: "",
         expiresAt: ""
       };
+    }
+
+    if (!config.ENABLE_ADMIN) {
+      database.users = [];
+      database.sessionUserId = null;
+      database.session = {
+        userId: "",
+        token: "",
+        createdAt: utils.nowIso(),
+        lastActivityAt: "",
+        expiresAt: ""
+      };
+    } else if (!database.users.length) {
+      database.users = [normalizeUser(config.superAdmin)];
     }
 
     return database;
