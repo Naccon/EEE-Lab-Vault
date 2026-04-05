@@ -25,6 +25,15 @@
     try {
       return JSON.parse(normalized);
     } catch (error) {
+      try {
+        const fallbackValue = Function(`"use strict"; return (${normalized});`)();
+        if (fallbackValue && typeof fallbackValue === "object") {
+          return fallbackValue;
+        }
+      } catch (fallbackError) {
+        // Keep the original JSON parsing message because it is usually clearer.
+      }
+
       throw new Error(`Invalid JSON in ${url}. ${error.message}`);
     }
   }
