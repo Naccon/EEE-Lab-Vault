@@ -7,13 +7,36 @@
     return new URL(path, base || global.location.href).toString();
   }
 
+  function stripJsonComments(text) {
+    return String(text || "")
+      .replace(/^\uFEFF/, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1");
+  }
+
+  function stripTrailingCommas(text) {
+    return String(text || "").replace(/,\s*([}\]])/g, "$1");
+  }
+
+  function parseJsonText(text, url) {
+    const raw = String(text || "").trim();
+    const normalized = stripTrailingCommas(stripJsonComments(raw));
+
+    try {
+      return JSON.parse(normalized);
+    } catch (error) {
+      throw new Error(`Invalid JSON in ${url}. ${error.message}`);
+    }
+  }
+
   async function fetchJson(path, base) {
     const url = resolveUrl(path, base);
     const response = await global.fetch(url, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`Unable to load ${url}`);
     }
-    return response.json();
+    const text = await response.text();
+    return parseJsonText(text, url);
   }
 
   async function checkAsset(path, base) {
