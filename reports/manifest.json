@@ -1,3 +1,10 @@
 {
-  "subjects": []
+  "subjects": [
+    {
+      "code": "ME-284",
+      "path": "./ME-284/",
+      "subject": "subject.json",
+      "index": "reports_index.json"
+    }
+  ]
 }

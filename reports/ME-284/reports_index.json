@@ -1,3 +1,9 @@
 {
-  "reports": ["report-001.json"]
+  "reports": [
+    { "path": "report-001.json" },
+    { "path": "report-002.json" },
+    { "path": "report-003.json" },
+    { "path": "report-004.json" },
+    { "path": "report-005.json" }
+  ]
 }

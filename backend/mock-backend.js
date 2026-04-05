@@ -63,21 +63,40 @@
     return entries;
   }
 
+  function resolveReportPath(reportRef) {
+    if (typeof reportRef === "string") {
+      return reportRef;
+    }
+    const candidate = reportRef && (
+      reportRef.path
+      || reportRef.file
+      || reportRef.filename
+      || reportRef.json
+      || reportRef.report
+      || reportRef.slug
+      || reportRef.id
+    );
+    if (!candidate) {
+      throw new Error("Report entry is missing a JSON file reference. Use path, file, filename, json, report, slug, or id.");
+    }
+    return /\.json$/i.test(candidate) ? candidate : `${candidate}.json`;
+  }
+
   async function loadReport(subjectMeta, reportRef, reportsIndexUrl) {
-    const reportPath = reportRef.path || reportRef.file || `${reportRef.id}.json`;
+    const reportPath = resolveReportPath(reportRef);
     const reportUrl = resolveUrl(reportPath, reportsIndexUrl);
     const reportJson = await fetchJson(reportPath, reportsIndexUrl);
     const files = await normalizeFiles(reportJson.files || {}, reportUrl);
 
     return {
-      id: reportJson.id || reportRef.id || utils.slugify(`${subjectMeta.subjectCode || subjectMeta.code}-${reportPath}`),
-      title: utils.normalizeText(reportJson.title || `Experiment ${reportJson.experimentNo || ""}`) || "Untitled Report",
+      id: reportJson.id || (typeof reportRef === "object" && reportRef.id) || utils.slugify(`${subjectMeta.subjectCode || subjectMeta.code}-${reportPath}`),
+      title: utils.normalizeText(reportJson.title || (typeof reportRef === "object" && reportRef.title) || `Experiment ${reportJson.experimentNo || ""}`) || "Untitled Report",
       status: utils.normalizeText(reportJson.status || "published").toLowerCase() === "draft" ? "draft" : "published",
       subjectName: utils.normalizeText(reportJson.subjectName || subjectMeta.subjectName || ""),
       subjectCode: utils.normalizeText(reportJson.subjectCode || subjectMeta.subjectCode || subjectMeta.code || ""),
-      experimentNo: utils.normalizeText(reportJson.experimentNo || reportRef.experimentNo || ""),
-      experimentDate: utils.normalizeText(reportJson.experimentDate || reportRef.experimentDate || ""),
-      executiveSummary: utils.normalizeText(reportJson.executiveSummary || reportJson.summary || reportRef.executiveSummary || ""),
+      experimentNo: utils.normalizeText(reportJson.experimentNo || (typeof reportRef === "object" && reportRef.experimentNo) || ""),
+      experimentDate: utils.normalizeText(reportJson.experimentDate || (typeof reportRef === "object" && reportRef.experimentDate) || ""),
+      executiveSummary: utils.normalizeText(reportJson.executiveSummary || reportJson.summary || (typeof reportRef === "object" && reportRef.executiveSummary) || ""),
       student: {
         studentName: utils.normalizeText(reportJson.student && reportJson.student.studentName),
         studentId: utils.normalizeText(reportJson.student && reportJson.student.studentId),

@@ -1,12 +1,12 @@
 {
-  "id": "me-284-report-001",
-  "title": "Exp-1: Determination of Absolute and Relative Humidity of Atmospheric Air",
+  "id": "me-284-report-005",
+  "title": "Exp-5: Study of Different Speed and Torque Measuring Instrument",
   "status": "published",
   "subjectName": "ME-284 Laboratory",
   "subjectCode": "ME-284",
-  "experimentNo": "Exp-1",
-  "experimentDate": "2026-05-04",
-  "executiveSummary": "Measurement-focused laboratory report on determining the absolute and relative humidity of atmospheric air.",
+  "experimentNo": "Exp-5",
+  "experimentDate": "2026-05-05",
+  "executiveSummary": "Instrument-study laboratory report covering speed and torque measurement methods and related practical observation.",
   "student": {
     "studentName": "Md. Naim Ibne Nasir",
     "studentId": "1072510005131008",
@@ -20,11 +20,11 @@
   "files": {
     "pdf": {
       "label": "Report PDF",
-      "path": "./report-001.pdf"
+      "path": "./report-005.pdf"
     },
     "docx": {
       "label": "Report DOCX",
-      "path": "./report-001.docx"
+      "path": "./report-005.docx"
     }
   }
 }
