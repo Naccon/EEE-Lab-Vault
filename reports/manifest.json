@@ -1,3 +1,7 @@
 {
-  "subjects": ["ME-284"]
+  "subjects": [
+    {
+      "code": "ME-284"
+    }
+  ]
 }
