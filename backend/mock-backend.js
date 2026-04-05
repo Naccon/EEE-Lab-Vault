@@ -82,6 +82,31 @@
     return /\.json$/i.test(candidate) ? candidate : `${candidate}.json`;
   }
 
+  function pickReportEntries(reportsIndex) {
+    if (Array.isArray(reportsIndex)) {
+      return reportsIndex.filter(Boolean);
+    }
+
+    if (!reportsIndex || typeof reportsIndex !== "object") {
+      return [];
+    }
+
+    const candidates = [
+      reportsIndex.reports,
+      reportsIndex.items,
+      reportsIndex.entries
+    ];
+
+    for (const candidate of candidates) {
+      const items = utils.toArray(candidate).filter(Boolean);
+      if (items.length) {
+        return items;
+      }
+    }
+
+    return [];
+  }
+
   async function loadReport(subjectMeta, reportRef, reportsIndexUrl) {
     const reportPath = resolveReportPath(reportRef);
     const reportUrl = resolveUrl(reportPath, reportsIndexUrl);
@@ -120,9 +145,13 @@
     const subjectMeta = await fetchJson(subjectEntry.subject || "subject.json", subjectUrl);
     const reportsIndexPath = subjectEntry.index || "reports_index.json";
     const reportsIndex = await fetchJson(reportsIndexPath, subjectUrl);
-    const items = utils.toArray(reportsIndex.reports);
+    const items = pickReportEntries(reportsIndex);
     const reports = [];
     const warnings = [];
+
+    if (!items.length) {
+      warnings.push(`No valid report entries were found in ${subjectMeta.subjectCode || subjectEntry.code}. Check reports_index.json.`);
+    }
 
     for (const item of items) {
       try {
