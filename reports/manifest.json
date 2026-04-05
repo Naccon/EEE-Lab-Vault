@@ -2,9 +2,13 @@
   "subjects": [
     {
       "code": "ME-284",
+<<<<<<< HEAD
       "path": "./ME-284/",
       "subject": "subject.json",
       "index": "reports_index.json"
+=======
+      "name": "Fundamental of Mechanical Engineering Laboratory"
+>>>>>>> a1be441bafac8e5b35ea4062656ae754a542e6a2
     }
   ]
 }
