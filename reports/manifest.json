@@ -1,7 +1,8 @@
 {
   "subjects": [
     {
-      "code": "ME-284"
+      "code": "ME-284",
+      "name": "Fundamental of Mechanical Engineering Laboratory"
     }
   ]
 }
