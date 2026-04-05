@@ -9,6 +9,7 @@
       database: "eee-lab-vault.database",
       visitorId: "eee-lab-vault.visitor-id"
     },
+    reportsManifestPath: "./reports/manifest.json",
     categories: [
       { id: "all", name: "All Categories", icon: "ALL", code: "GLOBAL" },
       { id: "circuits", name: "Circuit Analysis", icon: "CIR", code: "EEE-CIR" },

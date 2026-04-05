@@ -1983,6 +1983,12 @@ body[data-theme="light"] .search-input {
   text-transform: uppercase;
 }
 
+.viewer-file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
 .data-table-shell {
   overflow-x: auto;
 }
